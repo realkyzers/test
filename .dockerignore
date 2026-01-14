@@ -1,0 +1,10 @@
+node_modules
+npm-debug.log
+.env
+.git
+.gitignore
+.DS_Store
+railway.json
+Procfile
+docker-compose.yml
+.replit

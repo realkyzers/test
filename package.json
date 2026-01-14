@@ -1,0 +1,27 @@
+{
+  "name": "discord-lore-bot",
+  "version": "1.0.0",
+  "description": "Discord bot for managing Lore and Moments with MySQL database",
+  "main": "src/bot.js",
+  "type": "module",
+  "scripts": {
+    "start": "node src/bot.js",
+    "dev": "node --watch src/bot.js"
+  },
+  "keywords": [
+    "discord",
+    "bot",
+    "lore",
+    "moments"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "discord.js": "^14.14.0",
+    "dotenv": "^16.3.1",
+    "mysql2": "^3.6.5"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}

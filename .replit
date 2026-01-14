@@ -1,0 +1,23 @@
+run = "npm start"
+entrypoint = "src/bot.js"
+
+[env]
+DISCORD_TOKEN = ""
+DISCORD_CLIENT_ID = ""
+GUILD_ID = ""
+DB_HOST = "localhost"
+DB_PORT = "3306"
+DB_USER = "root"
+DB_PASSWORD = ""
+DB_NAME = "lore_bot_db"
+NODE_ENV = "development"
+
+[packager]
+language = "nodejs"
+
+[packager.features]
+packageSearch = true
+guessImports = true
+
+[nix]
+channel = "stable-23_11"
