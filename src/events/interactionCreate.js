@@ -1,0 +1,48 @@
+export async function handleInteractionCreate(interaction) {
+  try {
+    // Handle slash commands
+    if (interaction.isChatInputCommand()) {
+      const command = interaction.client.commands.get(interaction.commandName);
+
+      if (!command) {
+        console.error(`No command matching ${interaction.commandName} was found.`);
+        return;
+      }
+
+      await command.execute(interaction);
+    }
+
+    // Handle modals
+    if (interaction.isModalSubmit()) {
+      if (interaction.customId === 'lore_submission_modal') {
+        const { handleLoreSubmissionModal } = await import('../interactions/lore.js');
+        await handleLoreSubmissionModal(interaction);
+      } else if (interaction.customId === 'moment_submission_modal') {
+        const { handleMomentSubmissionModal } = await import('../interactions/moment.js');
+        await handleMomentSubmissionModal(interaction);
+      }
+    }
+
+    // Handle buttons
+    if (interaction.isButton()) {
+      if (interaction.customId.startsWith('lore_accept') || interaction.customId.startsWith('lore_reject')) {
+        const { handleLoreButton } = await import('../interactions/lore.js');
+        await handleLoreButton(interaction);
+      } else if (
+        interaction.customId.startsWith('moment_accept') ||
+        interaction.customId.startsWith('moment_reject')
+      ) {
+        const { handleMomentButton } = await import('../interactions/moment.js');
+        await handleMomentButton(interaction);
+      }
+    }
+  } catch (error) {
+    console.error('Error handling interaction:', error);
+    if (!interaction.replied) {
+      interaction.reply({
+        content: '❌ An error occurred processing your request.',
+        ephemeral: true,
+      }).catch(console.error);
+    }
+  }
+}
