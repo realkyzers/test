@@ -134,15 +134,27 @@ async function createTables(pool) {
     `);
 
     // Add foreign key to moment_submissions for moment_id
-    await pool.query(`
-      ALTER TABLE moment_submissions 
-      ADD CONSTRAINT fk_moment_id FOREIGN KEY (moment_id) REFERENCES moments(id) ON DELETE SET NULL
-    `).catch(() => {}); // Ignore if constraint already exists
+    try {
+      await pool.query(`
+        ALTER TABLE moment_submissions 
+        ADD CONSTRAINT fk_moment_id FOREIGN KEY (moment_id) REFERENCES moments(id) ON DELETE SET NULL
+      `);
+    } catch (err) {
+      // Ignore if constraint already exists
+    }
 
     // Create indexes for better query performance
-    await pool.query('CREATE INDEX IF NOT EXISTS idx_lore_guild ON lore(guild_id)');
-    await pool.query('CREATE INDEX IF NOT EXISTS idx_lore_submissions_guild ON lore_submissions(guild_id)');
-    await pool.query('CREATE INDEX IF NOT EXISTS idx_moment_submissions_guild ON moment_submissions(guild_id)');
+    try {
+      await pool.query('ALTER TABLE lore ADD INDEX idx_lore_guild (guild_id)');
+    } catch (err) {}
+    
+    try {
+      await pool.query('ALTER TABLE lore_submissions ADD INDEX idx_lore_submissions_guild (guild_id)');
+    } catch (err) {}
+    
+    try {
+      await pool.query('ALTER TABLE moment_submissions ADD INDEX idx_moment_submissions_guild (guild_id)');
+    } catch (err) {}
 
     console.log('✓ All tables created successfully');
   } catch (error) {
