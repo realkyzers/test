@@ -17,14 +17,14 @@ export async function handleMomentSubmissionModal(interaction) {
 
     if (!config?.moment_submission_channel) {
       return interaction.reply({
-        content: '❌ Moment submission channel not configured.',
+        content: '❌ Moment submission channel not configured. Admin must use `/configure set_moment_submission_channel`',
         ephemeral: true,
       });
     }
 
     if (!config?.verification_channel) {
       return interaction.reply({
-        content: '❌ Verification channel not configured.',
+        content: '❌ Verification channel not configured. Admin must use `/configure set_verification_channel`',
         ephemeral: true,
       });
     }
@@ -32,10 +32,18 @@ export async function handleMomentSubmissionModal(interaction) {
     // Create submission record
     const submissionId = await createMomentSubmission(guildId, userId, content);
 
-    // Send to verification channel
-    const verificationChannel = await interaction.client.channels.fetch(
-      config.verification_channel
-    );
+    // Send to verification channel with error handling
+    let verificationChannel;
+    try {
+      verificationChannel = await interaction.client.channels.fetch(
+        config.verification_channel
+      );
+    } catch (err) {
+      return interaction.reply({
+        content: '❌ Verification channel is invalid or deleted. Admin must reconfigure it.',
+        ephemeral: true,
+      });
+    }
 
     const embed = new EmbedBuilder()
       .setTitle('💭 New Moment Submission')

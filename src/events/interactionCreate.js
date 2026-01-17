@@ -25,10 +25,18 @@ export async function handleInteractionCreate(interaction) {
 
     // Handle buttons
     if (interaction.isButton()) {
-      if (interaction.customId.startsWith('lore_accept') || interaction.customId.startsWith('lore_reject')) {
+      // Help system buttons
+      if (interaction.customId.startsWith('help_')) {
+        const { handleHelpButton } = await import('../interactions/help.js');
+        await handleHelpButton(interaction);
+      }
+      // Lore buttons
+      else if (interaction.customId.startsWith('lore_accept') || interaction.customId.startsWith('lore_reject')) {
         const { handleLoreButton } = await import('../interactions/lore.js');
         await handleLoreButton(interaction);
-      } else if (
+      }
+      // Moment buttons
+      else if (
         interaction.customId.startsWith('moment_accept') ||
         interaction.customId.startsWith('moment_reject')
       ) {
@@ -36,9 +44,18 @@ export async function handleInteractionCreate(interaction) {
         await handleMomentButton(interaction);
       }
     }
+
+    // Handle select menus
+    if (interaction.isStringSelectMenu()) {
+      // Help system select menus
+      if (interaction.customId.startsWith('help_')) {
+        const { handleHelpSelectMenu } = await import('../interactions/help.js');
+        await handleHelpSelectMenu(interaction);
+      }
+    }
   } catch (error) {
     console.error('Error handling interaction:', error);
-    if (!interaction.replied) {
+    if (!interaction.replied && !interaction.deferred) {
       interaction.reply({
         content: '❌ An error occurred processing your request.',
         ephemeral: true,

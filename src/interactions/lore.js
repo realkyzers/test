@@ -19,28 +19,41 @@ export async function handleLoreSubmissionModal(interaction) {
 
     if (!config?.lore_submission_channel) {
       return interaction.reply({
-        content: '❌ Lore submission channel not configured.',
+        content: '❌ Lore submission channel not configured. Admin must use `/configure set_lore_submission_channel`',
         ephemeral: true,
       });
     }
 
-    // Get the submission channel
-    const submissionChannel = await interaction.client.channels.fetch(
-      config.lore_submission_channel
-    );
-    const verificationChannel = await interaction.client.channels.fetch(
-      config.verification_channel
-    );
-
-    if (!verificationChannel) {
+    if (!config?.verification_channel) {
       return interaction.reply({
-        content: '❌ Verification channel not configured.',
+        content: '❌ Verification channel not configured. Admin must use `/configure set_verification_channel`',
         ephemeral: true,
       });
     }
 
-    // Create database submission record (placeholder - will be updated with messageId)
-    const submissionId = 1; // This would be returned from createLoreSubmission
+    // Get the submission channel with error handling
+    let submissionChannel, verificationChannel;
+    
+    try {
+      submissionChannel = await interaction.client.channels.fetch(config.lore_submission_channel);
+    } catch (err) {
+      return interaction.reply({
+        content: '❌ Lore submission channel is invalid or deleted. Admin must reconfigure it.',
+        ephemeral: true,
+      });
+    }
+
+    try {
+      verificationChannel = await interaction.client.channels.fetch(config.verification_channel);
+    } catch (err) {
+      return interaction.reply({
+        content: '❌ Verification channel is invalid or deleted. Admin must reconfigure it.',
+        ephemeral: true,
+      });
+    }
+
+    // Create database submission record
+    const submissionId = await createLoreSubmission(guildId, userId, title, content);
 
     // Send submission to verification channel with buttons
     const embed = new EmbedBuilder()
