@@ -1,14 +1,27 @@
 version: '3.8'
 
 services:
+  mongodb:
+    image: mongo:6.0
+    container_name: dashboard_mongodb
+    environment:
+      MONGO_INITDB_DATABASE: dashboard
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongodb_data:/data/db
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
   mysql:
     image: mysql:8.0
-    container_name: lore_bot_mysql
+    container_name: dashboard_mysql
     environment:
       MYSQL_ROOT_PASSWORD: root_password
-      MYSQL_DATABASE: lore_bot_db
-      MYSQL_USER: bot_user
-      MYSQL_PASSWORD: bot_password
+      MYSQL_DATABASE: blackhawks
     ports:
       - "3306:3306"
     volumes:
@@ -18,26 +31,42 @@ services:
       timeout: 5s
       retries: 10
 
-  bot:
-    build: .
-    container_name: lore_bot
+  backend:
+    build: ./dashboard/backend
+    container_name: dashboard_backend
     environment:
-      DISCORD_TOKEN: ${DISCORD_TOKEN}
-      DISCORD_CLIENT_ID: ${DISCORD_CLIENT_ID}
-      GUILD_ID: ${GUILD_ID}
-      DB_HOST: mysql
-      DB_PORT: 3306
-      DB_USER: bot_user
-      DB_PASSWORD: bot_password
-      DB_NAME: lore_bot_db
+      PORT: 5000
       NODE_ENV: production
+      FRONTEND_URL: http://frontend
+      MONGODB_URI: mongodb://mongodb:27017/dashboard
+      MYSQLHOST: mysql
+      MYSQLPORT: 3306
+      MYSQLUSER: root
+      MYSQLPASSWORD: root_password
+      MYSQLDATABASE: blackhawks
+      DISCORD_CLIENT_ID: ${DISCORD_CLIENT_ID}
+      DISCORD_CLIENT_SECRET: ${DISCORD_CLIENT_SECRET}
+      DISCORD_REDIRECT_URI: http://backend:5000/api/auth/discord/callback
+      JWT_SECRET: ${JWT_SECRET}
+      BOT_API_URL: http://bot:3001/api
     depends_on:
+      mongodb:
+        condition: service_healthy
       mysql:
         condition: service_healthy
+    ports:
+      - "5000:5000"
     restart: on-failure
-    volumes:
-      - .:/app
-      - /app/node_modules
+
+  frontend:
+    build: ./dashboard/frontend
+    container_name: dashboard_frontend
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+    restart: on-failure
 
 volumes:
+  mongodb_data:
   mysql_data:
